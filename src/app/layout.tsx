@@ -24,6 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <ClerkProvider
       appearance={{
+        options: { unsafe_disableDevelopmentModeWarnings: true },
         variables: {
           colorPrimary: "#f9723f",
           colorForeground: "#16120f",
