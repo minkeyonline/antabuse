@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "Antabuse — the circuit breaker for Web3 payments",
   description:
     "Authorize recurring crypto payments with confidence. Antabuse's risk engine trips before wallet drainers can touch your funds.",
+  other: {
+    "ory-verify": "orynth-e87483c2df76450fa41d166b180e3d29",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
