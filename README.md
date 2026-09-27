@@ -1,8 +1,8 @@
 # Antabuse
 
-AI circuit breaker for Web3 subscriptions and wallets — [antabuse.run](https://antabuse.run).
+Circuit breaker for Web3 subscriptions and wallets. [antabuse.run](https://antabuse.run)
 
-Next.js 16 (App Router) · Tailwind CSS v4 · Clerk · Lucide.
+Next.js 16 (App Router) · Tailwind CSS v4 · Clerk · Drizzle + Postgres · viem.
 
 ## Develop
 
@@ -11,19 +11,36 @@ npm install
 npm run dev
 ```
 
-`.env.local` holds temporary accountless Clerk dev keys (created with `npx clerk@latest init --accountless`).
-Run `npx clerk@latest auth login` to claim that app, or copy `.env.example` and paste your own keys.
+- **Auth:** `.env.local` holds temporary accountless Clerk dev keys. Run `npx clerk@latest auth login` to claim the app.
+- **Database:** with no `DATABASE_URL`, an embedded Postgres (PGlite) is created in `.data/pglite` and migrated automatically.
 
-## Routes
+## How it works
 
-- `/` public landing page (bento grid)
-- `/dashboard` protected by `src/proxy.ts` (Clerk). Wallets, subscriptions, firewall status.
-- `/sign-in`, `/sign-up` Clerk components
+| Piece | Where |
+| --- | --- |
+| Risk engine: decodes calldata / EIP-712, scores it, logs an event | `src/lib/risk-engine.ts` |
+| Public API: `POST /api/v1/authorize` (Bearer API key) | `src/app/api/v1/authorize/route.ts` |
+| Live balances (native + USDC/USDT on 5 chains, CoinGecko prices) | `src/lib/portfolio.ts`, `/api/portfolio` |
+| Dashboard mutations (wallets, subscriptions, breaker, API keys) | `src/app/dashboard/actions.ts` |
+| Schema / migrations | `src/db/schema.ts`, `drizzle/` |
 
-Dashboard data is mocked in `src/lib/mock-data.ts`.
+### API
+
+```bash
+curl -X POST https://antabuse.run/api/v1/authorize \
+  -H "Authorization: Bearer ak_live_…" -H "Content-Type: application/json" \
+  -d '{"wallet":"0x…","chainId":8453,"transaction":{"to":"0x…","data":"0x…","value":"0"}}'
+```
+
+Send `typedData` (`{ domain, primaryType, message }`) instead of `transaction` for signature requests
+(EIP-2612 `Permit`, Permit2 `PermitSingle`/`PermitBatch`, Seaport `OrderComponents`).
+The wallet must be registered to the key's account. The response contains `verdict`
+(`allowed` | `challenged` | `tripped`), `risk`, `reasons[]`, and the matched `subscription`.
 
 ## Deploy (Vercel)
 
-Import the repo in Vercel and set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`
-(plus the redirect URLs in `.env.example`) under Project → Settings → Environment Variables.
-Use a Clerk **production** instance for antabuse.run.
+1. Add a Postgres database (Vercel → Storage → Neon) so `DATABASE_URL` is set.
+2. Set the Clerk keys from a **production** Clerk instance.
+3. Deploy. The `vercel-build` script runs `drizzle-kit migrate` before `next build`.
+
+After changing `src/db/schema.ts`, run `npm run db:generate` and commit the new migration.

@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   BadgeCheck,
   CalendarClock,
+  Link2,
   Code2,
   Radio,
   ShieldAlert,
@@ -14,13 +15,17 @@ import {
 } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { Logo } from "@/components/logo";
+import { CHAINS } from "@/lib/chains";
 
-const feed = [
-  { label: "setApprovalForAll → 0x9f3…c21e", verdict: "Tripped", tone: "block" },
-  { label: "Netflix · 14.99 USDC / mo", verdict: "Allowed", tone: "ok" },
-  { label: "Permit2 unlimited → 0x44a…07bd", verdict: "Tripped", tone: "block" },
-  { label: "Spotify · 10.99 USDC / mo", verdict: "Allowed", tone: "ok" },
+const rules = [
+  { label: "Unlimited approval to a plain wallet", verdict: "Trips", tone: "block" },
+  { label: "setApprovalForAll(operator, true)", verdict: "Trips", tone: "block" },
+  { label: "Unlimited approval to a contract", verdict: "Asks you", tone: "ask" },
+  { label: "Charge above subscription cap", verdict: "Trips", tone: "block" },
+  { label: "Capped charge to approved merchant", verdict: "Passes", tone: "ok" },
 ] as const;
+
+const chainNames = CHAINS.map((c) => c.name).join(", ");
 
 export default function Home() {
   return (
@@ -32,7 +37,7 @@ export default function Home() {
         <section className="bento peach-glow flex flex-row items-center gap-4 p-6 md:gap-10 md:p-12">
           <div className="flex min-w-0 flex-1 flex-col items-start gap-5">
             <span className="glass inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-peach-600">
-              <Sparkles className="size-3.5" /> AI circuit breaker for Web3 payments
+              <Sparkles className="size-3.5" /> Circuit breaker for Web3 payments
             </span>
             <h1 className="text-3xl font-bold leading-[1.05] tracking-tight md:text-6xl">
               Subscribe freely.
@@ -43,8 +48,8 @@ export default function Home() {
             </h1>
             <p className="max-w-md text-sm text-muted md:text-lg">
               Antabuse sits between your wallet and every recurring charge. Approved
-              subscriptions flow through. Anything that looks like a drainer trips the
-              breaker in under 40&nbsp;ms.
+              subscriptions flow through. Unlimited approvals, blind signatures and
+              balance-draining transfers trip the breaker before they reach the chain.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -71,68 +76,69 @@ export default function Home() {
           />
         </section>
 
-        {/* Bento stats grid */}
+        {/* Bento feature grid */}
         <section id="platform" className="grid auto-rows-[minmax(170px,auto)] grid-cols-2 gap-4 md:grid-cols-4">
-          <article className="bento col-span-2 flex flex-col justify-between bg-ink p-7 text-white md:row-span-2">
+          <article className="bento col-span-2 flex flex-col justify-between gap-6 bg-ink p-7 text-white md:row-span-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-white/60">Drainer losses prevented</span>
+              <span className="text-sm text-white/60">What trips the breaker</span>
               <ShieldCheck className="size-5 text-peach-300" />
             </div>
-            <div>
-              <p className="text-6xl font-bold tracking-tight md:text-7xl">$184M</p>
-              <p className="mt-2 max-w-xs text-sm text-white/60">
-                in malicious approvals, permits and transfers intercepted before they
-                reached the chain.
-              </p>
-            </div>
-            <div className="mt-6 flex flex-col gap-2">
-              {feed.map((e) => (
+            <p className="max-w-sm text-3xl font-bold leading-tight tracking-tight md:text-4xl">
+              Every request is decoded, scored and explained.
+            </p>
+            <div className="flex flex-col gap-2">
+              {rules.map((r) => (
                 <div
-                  key={e.label}
+                  key={r.label}
                   className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2 font-mono text-xs"
                 >
-                  <span className="truncate text-white/80">{e.label}</span>
+                  <span className="truncate text-white/80">{r.label}</span>
                   <span
-                    className={
-                      e.tone === "block"
-                        ? "ml-3 rounded-full bg-peach-500/20 px-2 py-0.5 text-peach-300"
-                        : "ml-3 rounded-full bg-mint-400/15 px-2 py-0.5 text-mint-400"
-                    }
+                    className={`ml-3 shrink-0 rounded-full px-2 py-0.5 ${
+                      r.tone === "block"
+                        ? "bg-peach-500/20 text-peach-300"
+                        : r.tone === "ask"
+                          ? "bg-white/10 text-white/80"
+                          : "bg-mint-400/15 text-mint-400"
+                    }`}
                   >
-                    {e.verdict}
+                    {r.verdict}
                   </span>
                 </div>
               ))}
             </div>
           </article>
 
-          <article className="bento flex flex-col items-center justify-center gap-3 p-6 text-center">
+          <article className="bento flex flex-col justify-between gap-3 p-6">
             <Wallet className="size-5 text-peach-500" />
-            <p className="text-4xl font-bold tracking-tight">2.1M</p>
-            <p className="text-sm text-muted">wallets protected</p>
+            <div>
+              <p className="text-xl font-semibold leading-snug">Non-custodial</p>
+              <p className="mt-1 text-sm text-muted">
+                We never hold keys. You prove ownership with a free signature.
+              </p>
+            </div>
           </article>
 
-          <article className="bento flex flex-col items-center justify-center gap-2 p-6">
-            <Gauge value={99.97} />
-            <p className="text-sm text-muted">legit charges approved</p>
+          <article className="bento flex flex-col justify-between gap-3 p-6">
+            <Link2 className="size-5 text-peach-500" />
+            <div>
+              <p className="text-xl font-semibold leading-snug">5 EVM chains</p>
+              <p className="mt-1 text-sm text-muted">{chainNames}</p>
+            </div>
           </article>
 
           <article className="bento col-span-2 flex flex-col justify-between bg-[#f6ebe3] p-6">
             <div className="relative z-10">
               <p className="text-sm font-medium text-muted">
-                <span className="font-semibold text-ink">AI</span> Circuit Breaker
+                <span className="font-semibold text-ink">Risk</span> Engine
               </p>
-              <p className="mt-2 max-w-[14rem] text-2xl font-semibold leading-tight">
-                38&nbsp;ms median decision latency
+              <p className="mt-2 max-w-[15rem] text-2xl font-semibold leading-tight">
+                Tune how early it trips
+              </p>
+              <p className="mt-2 max-w-[14rem] text-sm text-muted">
+                One sensitivity slider sets the trip and confirm thresholds.
               </p>
             </div>
-            <span className="relative z-10 inline-flex w-fit items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-mint-600">
-              <span className="relative flex size-2">
-                <span className="absolute inset-0 rounded-full bg-mint-400 animate-pulse-ring" />
-                <span className="relative size-2 rounded-full bg-mint-400" />
-              </span>
-              Armed on 14 chains
-            </span>
             <Image
               src="/ai-nodes.png"
               alt=""
@@ -142,7 +148,6 @@ export default function Home() {
             />
           </article>
 
-
           <article className="bento col-span-2 flex flex-col justify-between gap-4 p-6 md:col-span-2">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted">
@@ -151,17 +156,16 @@ export default function Home() {
               <CalendarClock className="size-5 text-mint-600" />
             </div>
             <p className="text-3xl font-semibold leading-tight tracking-tight md:text-4xl">
-              We&rsquo;ve cleared <span className="font-bold">41M</span> recurring
-              charges without a single false trip.
+              Set a cap and a cadence. Anything over it trips.
             </p>
           </article>
 
           <article className="bento flex flex-col justify-between gap-4 bg-gradient-to-br from-peach-400 to-peach-600 p-6 text-white">
             <Radio className="size-5" />
             <div>
-              <p className="text-4xl font-bold tracking-tight">12K+</p>
+              <p className="text-xl font-semibold leading-snug">Telecom-grade</p>
               <p className="mt-1 text-sm text-white/85">
-                merchants on an API built by telecom fraud engineers
+                Built by fraud engineers from the telecom world.
               </p>
             </div>
           </article>
@@ -186,7 +190,7 @@ export default function Home() {
             {
               icon: Wallet,
               title: "Connect a wallet",
-              body: "Link any EVM or Solana wallet. Antabuse never holds keys — it only co-signs policy.",
+              body: "Link an EVM wallet and verify it with a free signature. Antabuse never holds your keys.",
             },
             {
               icon: BadgeCheck,
@@ -196,7 +200,7 @@ export default function Home() {
             {
               icon: ShieldAlert,
               title: "Let the breaker watch",
-              body: "Our model scores every request. Unlimited approvals, spoofed permits and odd bursts trip instantly.",
+              body: "Every request is scored. Unlimited approvals, risky permits and balance-draining transfers trip the breaker.",
             },
           ].map(({ icon: Icon, title, body }, i) => (
             <article key={title} className="bento flex flex-col gap-4 p-7">
@@ -222,18 +226,19 @@ export default function Home() {
               One call to make every checkout drainer-proof.
             </h2>
             <p className="max-w-md text-sm text-muted md:text-base">
-              Wallets, exchanges and merchants embed Antabuse so their users get
-              circuit-breaker protection without changing how they pay.
+              Wallets, exchanges and merchants send each transaction or signature
+              request to Antabuse before it is signed, and get back a verdict with
+              human-readable reasons.
             </p>
             <pre className="w-full max-w-md overflow-x-auto rounded-2xl bg-ink p-4 font-mono text-[11px] leading-relaxed text-white/85 md:text-xs">
-{`POST /v1/authorize
+{`POST /api/v1/authorize
+Authorization: Bearer ak_live_…
 {
-  "wallet": "0x71C…9A3f",
-  "merchant": "spotify",
-  "amount": "10.99", "asset": "USDC",
-  "cadence": "monthly"
+  "wallet": "0x…", "chainId": 8453,
+  "transaction": { "to": "0x…", "data": "0x…" }
 }
-→ { "verdict": "allow", "risk": 0.02 }`}
+→ { "verdict": "tripped", "risk": 0.74,
+    "reasons": [ … ] }`}
             </pre>
           </div>
           <Image
@@ -251,7 +256,7 @@ export default function Home() {
             Put a breaker on your wallet today.
           </h2>
           <p className="max-w-md text-sm text-white/60">
-            Free for individuals. Usage-based API pricing for platforms.
+            Sign up, connect a wallet, and approve the merchants you trust.
           </p>
           <Link
             href="/dashboard"
@@ -266,30 +271,6 @@ export default function Home() {
         <Logo />
         <p>© {new Date().getFullYear()} Antabuse · antabuse.run</p>
       </footer>
-    </div>
-  );
-}
-
-function Gauge({ value }: { value: number }) {
-  const r = 42;
-  const c = 2 * Math.PI * r;
-  return (
-    <div className="relative grid size-28 place-items-center">
-      <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="var(--color-peach-100)" strokeWidth="9" />
-        <circle
-          cx="50"
-          cy="50"
-          r={r}
-          fill="none"
-          stroke="var(--color-peach-500)"
-          strokeWidth="9"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - value / 100)}
-        />
-      </svg>
-      <span className="text-xl font-bold tracking-tight">{value}%</span>
     </div>
   );
 }

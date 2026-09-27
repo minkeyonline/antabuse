@@ -15,9 +15,9 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://antabuse.run"),
-  title: "Antabuse — the AI circuit breaker for Web3 payments",
+  title: "Antabuse — the circuit breaker for Web3 payments",
   description:
-    "Authorize recurring crypto payments with confidence. Antabuse's AI firewall trips before wallet drainers can touch your funds.",
+    "Authorize recurring crypto payments with confidence. Antabuse's risk engine trips before wallet drainers can touch your funds.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
